@@ -118,6 +118,6 @@ evaluation:
 3. configs 디렉토리에 baseline.yaml과 같은 형식으로 새로운 설정파일 작성
 4. utils/factor.py에 새로운 전략 등록
 5. 실험 진행
-   - docker compose build --no-cache
-   - ./run_experiment.sh configs/{설정파일.yml}
+   - `docker compose build --no-cache`
+   - `./run_experiment.sh configs/{설정파일.yml}`
 
