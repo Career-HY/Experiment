@@ -107,72 +107,8 @@ evaluation:
   k_values: [1, 3, 5, 10]
 ```
 
-### 실험별 고유값 설정
-충돌 방지를 위해 각 실험마다 고유한 식별자를 사용합니다.
 
-```yaml
-# 베이스라인
-collection_name: "job-postings-baseline"
-persist_directory: "/tmp/chroma_baseline"
-
-# 청킹 실험
-collection_name: "job-postings-chunk-1000-200"
-persist_directory: "/tmp/chroma_chunk_1000_200"
-
-# 임베딩 실험
-collection_name: "job-postings-3large"
-persist_directory: "/tmp/chroma_3large"
-```
-
-## 📈 실험 실행 순서
-
-### 1단계: 베이스라인 설정
-```bash
-# 베이스라인 실행 (현재 서비스 설정)
-./run_experiment.sh configs/baseline.yaml
-
-# 결과 확인
-cat results/baseline/results_*.json
-```
-
-### 2단계: 단일 변수 실험
-```bash
-# 임베딩 모델 실험
-./run_experiment.sh configs/embedding_3small.yaml
-./run_experiment.sh configs/embedding_3large.yaml
-
-# 청킹 전략 실험
-./run_experiment.sh configs/chunk_500_100.yaml
-./run_experiment.sh configs/chunk_1000_200.yaml
-./run_experiment.sh configs/chunk_1500_300.yaml
-
-# 검색 파라미터 실험
-./run_experiment.sh configs/topk_5.yaml
-./run_experiment.sh configs/topk_15.yaml
-./run_experiment.sh configs/topk_20.yaml
-```
-
-### 3단계: 조합 실험
-```bash
-# 최고 성능 조합 테스트
-./run_experiment.sh configs/best_combination.yaml
-```
-
-```markdown
-## 실험: {experiment_name}
-
-**날짜**: 2025-09-23
-**목적**: 청킹 크기가 성능에 미치는 영향 측정
-**변경사항**: chunk_size 1000 → 1500
-
-**결과**:
-- Recall@10: 0.0591 → 0.0734 (+24.1% ✅)
-- Precision@10: 0.0059 → 0.0071 (+20.3% ✅)
-- MRR: 0.0161 → 0.0203 (+26.1% ✅)
-
-**결론**: 청크 크기 증가가 전반적 성능 향상에 기여
-**다음 단계**: chunk_size=2000으로 추가 테스트 필요
-```
+<br>
 
 ## 🎯 실험 시나리오 예시
 
