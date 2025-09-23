@@ -167,25 +167,9 @@ results/baseline/
 새로운 Ground Truth CSV 파일을 받았을 때 실험에 사용할 JSONL 형태로 변환하는 유틸리티:
 
 ```bash
-# 대화형 변환 (컬럼 매핑을 자동 감지하고 확인)
 python utils/gt_converter.py new_ground_truth.csv data/test_queries_new.jsonl
-
-# 컬럼 매핑 미리 지정
-python utils/gt_converter.py input.csv output.jsonl --mapping "query:query_text,ground_truth_docs:relevant_doc_ids"
-
-# 기존 JSONL 파일 검증
-python utils/gt_converter.py --validate data/test_queries.jsonl
 ```
 
-<br>
-
-## 📚 참고 자료
-
-- [Docker 공식 문서](https://docs.docker.com/)
-- [OpenAI Embeddings API](https://platform.openai.com/docs/guides/embeddings)
-- [ChromaDB 문서](https://docs.trychroma.com/)
-- [LangChain Text Splitters](https://python.langchain.com/docs/modules/data_connection/document_transformers/)
-- [RAG 평가 지표 가이드](https://docs.ragas.io/en/stable/concepts/metrics/)
 
 <br>
 
