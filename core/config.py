@@ -77,6 +77,13 @@ class DataConfig:
     ground_truth_path: str = "data/ground_truth.jsonl"
     test_queries_path: str = "data/test_queries.jsonl"
     data_version: str = "v1"  # S3 데이터 버전 관리
+    # StructuredDocumentLoader 기반 파이프라인 사용 여부
+    use_structured_loader: bool = False
+    # JobPostParser 파싱 전략 ("fast", "hi_res" 등)
+    structured_parser_strategy: str = "fast"
+    # 섹션별 청킹 대상 섹션 (예: ["preferred", "qualifications", "job_duties"])
+    # None이면 StructuredDocumentLoader.DEFAULT_TARGET_SECTIONS 사용
+    structured_target_sections: list | None = None
 
     def __post_init__(self):
         # S3 버킷이 설정되지 않은 경우 환경변수에서 가져오기
@@ -149,14 +156,21 @@ class LangSmithConfig:
 class EvaluationConfig:
     """이중 평가 설정"""
 
+    mode: str = "dual"  # "dual", "retrieval_only", "build_only"
     retrieval: RetrievalEvaluationConfig = None
     generation: GenerationEvaluationConfig = None
+    metrics: list = None  # 평가 지표 리스트
+    save_results: bool = True  # 결과 저장 여부
+    results_dir: str = "data/results"  # 결과 저장 디렉토리
+    debug_single_query: bool = False  # 디버깅 모드: 단일 쿼리만 평가하고 상세 결과 출력
 
     def __post_init__(self):
         if self.retrieval is None:
             self.retrieval = RetrievalEvaluationConfig()
         if self.generation is None:
             self.generation = GenerationEvaluationConfig()
+        if self.metrics is None:
+            self.metrics = []
 
 
 @dataclass
@@ -232,6 +246,16 @@ class ExperimentConfig:
             eval_data = data["evaluation"]
             # 중첩된 evaluation 구조 처리
             eval_config = {}
+
+            # 최상위 필드들 처리
+            if "mode" in eval_data:
+                eval_config["mode"] = eval_data["mode"]
+            if "metrics" in eval_data:
+                eval_config["metrics"] = eval_data["metrics"]
+            if "save_results" in eval_data:
+                eval_config["save_results"] = eval_data["save_results"]
+            if "results_dir" in eval_data:
+                eval_config["results_dir"] = eval_data["results_dir"]
 
             if "retrieval" in eval_data:
                 eval_config["retrieval"] = RetrievalEvaluationConfig(

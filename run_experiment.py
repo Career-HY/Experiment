@@ -16,23 +16,33 @@ load_dotenv()
 
 
 async def main():
-    parser = argparse.ArgumentParser(description='Career-HY RAG 실험 실행')
-    parser.add_argument(
-        'config_path',
-        help='실험 설정 YAML 파일 경로'
-    )
-    parser.add_argument(
-        '--verbose',
-        action='store_true',
-        help='상세 로그 출력'
-    )
+    parser = argparse.ArgumentParser(description="Career-HY RAG 실험 실행")
+    parser.add_argument("config_path", help="실험 설정 YAML 파일 경로")
+    parser.add_argument("--verbose", action="store_true", help="상세 로그 출력")
 
     args = parser.parse_args()
 
-    # 설정 파일 확인
+    # 설정 파일 경로 처리 (상대 경로 지원)
     config_path = Path(args.config_path)
+
+    # 상대 경로인 경우 여러 위치에서 찾기
+    if not config_path.is_absolute():
+        # 1. 현재 작업 디렉토리에서 찾기
+        if not config_path.exists():
+            # 2. configs/ 디렉토리에서 찾기
+            configs_dir = Path(__file__).parent / "configs"
+            potential_path = configs_dir / config_path.name
+            if potential_path.exists():
+                config_path = potential_path
+            # 3. 스크립트 위치 기준으로 찾기
+            elif (Path(__file__).parent / config_path).exists():
+                config_path = Path(__file__).parent / config_path
+
     if not config_path.exists():
-        print(f"설정 파일을 찾을 수 없습니다: {config_path}")
+        print(f"❌ 설정 파일을 찾을 수 없습니다: {args.config_path}")
+        print(f"   시도한 경로: {config_path.absolute()}")
+        print(f"   현재 작업 디렉토리: {Path.cwd()}")
+        print(f"   스크립트 위치: {Path(__file__).parent}")
         sys.exit(1)
 
     try:
@@ -45,20 +55,23 @@ async def main():
         results = await pipeline.run()
 
         # 결과 요약 출력
-        print("\n" + "="*50)
+        print("\n" + "=" * 50)
         print("실험 결과 요약")
-        print("="*50)
+        print("=" * 50)
 
         # 검색 평가 결과
-        if 'retrieval_evaluation' in results:
+        if "retrieval_evaluation" in results:
             print("=== 검색 성능 지표 ===")
-            for metric in results['retrieval_evaluation']['metrics']:
+            for metric in results["retrieval_evaluation"]["metrics"]:
                 print(f"{metric['metric']}: {metric['score']:.4f}")
 
         # 생성 평가 결과 (LangSmith 정성평가)
-        if 'generation_evaluation' in results and 'langsmith_metrics' in results['generation_evaluation']:
+        if (
+            "generation_evaluation" in results
+            and "langsmith_metrics" in results["generation_evaluation"]
+        ):
             print("\n=== LangSmith 정성평가 지표 ===")
-            for metric in results['generation_evaluation']['langsmith_metrics']:
+            for metric in results["generation_evaluation"]["langsmith_metrics"]:
                 print(f"{metric['metric']}: {metric['score']:.4f}")
 
         print(f"\n처리된 문서 수: {results['document_count']}")
@@ -69,6 +82,7 @@ async def main():
         print(f"실험 실행 중 오류 발생: {e}")
         # 항상 상세한 에러 정보 출력
         import traceback
+
         traceback.print_exc()
         sys.exit(1)
 
